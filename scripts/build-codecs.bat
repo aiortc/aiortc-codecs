@@ -1,6 +1,6 @@
 set destdir=%1
 
-set outputfile=output\codecs-win%PYTHON_ARCH%.tar.gz
+set outputfile=output\codecs-win%PYTHON_ARCH%.tar.bz2
 if "%PYTHON_ARCH%" == "64" (
     set triplet=x64-windows-static
 ) else (
@@ -21,4 +21,4 @@ xcopy C:\vcpkg\installed\%triplet%\lib %destdir%\lib\ /E
 if not exist output (
     mkdir output
 )
-tar czvf %outputfile% -C %destdir% include lib
+tar cjvf %outputfile% -C %destdir% include lib

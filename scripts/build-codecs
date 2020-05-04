@@ -33,10 +33,10 @@ extract() {
 
 if [ "`uname`" = "Linux" ]; then
     outputdir=/output
-    outputfile=$outputdir/codecs-manylinux_$(uname -m).tar.gz
+    outputfile=$outputdir/codecs-manylinux_$(uname -m).tar.bz2
 elif [ "`uname`" = "Darwin" ]; then
     outputdir=`pwd`/output
-    outputfile=$outputdir/codecs-macosx_$(uname -m).tar.gz
+    outputfile=$outputdir/codecs-macosx_$(uname -m).tar.bz2
 else
     echo "Unknown platform"
     exit 1
@@ -64,5 +64,5 @@ if [ ! -e $outputfile ]; then
     make install
     cd ..
 
-    tar czvf $outputfile -C $destdir include lib
+    tar cjvf $outputfile -C $destdir include lib
 fi
