@@ -1,6 +1,6 @@
 name: build
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -22,6 +22,7 @@ jobs:
           CIBW_BEFORE_BUILD: scripts/build-codecs /tmp/vendor
           CIBW_BEFORE_BUILD_WINDOWS: scripts\build-codecs.bat C:\cibw\vendor
           CIBW_BUILD: cp38-*
+          CIBW_ENVIRONMENT_MACOS: CFLAGS=-mmacosx-version-min=10.9
           CIBW_TEST_COMMAND: python -c "import dummy"
         run: |
           pip install cibuildwheel
