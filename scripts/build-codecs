@@ -33,10 +33,10 @@ extract() {
 
 if [ "`uname`" = "Linux" ]; then
     outputdir=/output
-    outputfile=$outputdir/codecs-manylinux_$(uname -m).tar.bz2
+    outputfile=$outputdir/codecs-manylinux_$(uname -m).tar.gz
 elif [ "`uname`" = "Darwin" ]; then
     outputdir=`pwd`/output
-    outputfile=$outputdir/codecs-macosx_$(uname -m).tar.bz2
+    outputfile=$outputdir/codecs-macosx_$(uname -m).tar.gz
 else
     echo "Unknown platform"
     exit 1
@@ -49,7 +49,7 @@ if [ ! -e $outputfile ]; then
     cd $builddir
 
     # build vpx
-    extract vpx https://github.com/webmproject/libvpx/archive/v1.8.2.tar.gz
+    extract vpx https://github.com/webmproject/libvpx/archive/v1.9.0.tar.gz
     cd vpx
     ./configure --prefix=$destdir --disable-examples --disable-tools --disable-unit-tests --enable-pic
     make -j
@@ -64,5 +64,5 @@ if [ ! -e $outputfile ]; then
     make install
     cd ..
 
-    tar cjvf $outputfile -C $destdir include lib
+    tar czvf $outputfile -C $destdir include lib
 fi
