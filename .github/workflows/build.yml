@@ -14,6 +14,9 @@ jobs:
       - uses: actions/setup-python@v1
         with:
           python-version: 3.8
+      - name: Install qemu (linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: docker/setup-qemu-action@v1
       - name: Install yasm (macos)
         if: matrix.os == 'macos-latest'
         run: |
@@ -24,6 +27,7 @@ jobs:
         run: curl -L -o 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\yasm.exe' http://www.tortall.net/projects/yasm/releases/yasm-1.3.0-win64.exe
       - name: Build codecs
         env:
+          CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BEFORE_BUILD: scripts/build-codecs /tmp/vendor
           CIBW_BEFORE_BUILD_WINDOWS: scripts\build-codecs.bat C:\cibw\vendor
           CIBW_BUILD: cp38-*
