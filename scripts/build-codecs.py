@@ -1,6 +1,7 @@
 import os
 import platform
 import shutil
+import struct
 import subprocess
 import sys
 
@@ -25,6 +26,24 @@ def build(package, configure_args=[]):
     run(["make", "-j"])
     run(["make", "install"])
     os.chdir(build_dir)
+
+
+def get_platform():
+    system = platform.system()
+    if system == "Linux":
+        return "manylinux_%s" % platform.machine()
+    elif system == "Darwin":
+        # cibuildwheel sets ARCHFLAGS:
+        # https://github.com/pypa/cibuildwheel/blob/5255155bc57eb6224354356df648dc42e31a0028/cibuildwheel/macos.py#L207-L220
+        machine = os.environ["ARCHFLAGS"].split()[1]
+        return "macosx_%s" % machine
+    elif system == "Windows":
+        if struct.calcsize("P") * 8 == 64:
+            return "win_amd64"
+        else:
+            return "win32"
+    else:
+        raise Exception("Unsupported platfom %s" % sys.platform)
 
 
 def prepend_env(name, new, separator=" "):
@@ -58,19 +77,10 @@ def run(cmd):
     subprocess.run(cmd, check=True, stderr=sys.stderr.buffer, stdout=sys.stdout.buffer)
 
 
-system = platform.system()
-if system == "Linux":
-    machine = platform.machine()
+output_dir = os.path.abspath("output")
+if platform.system() == "Linux":
     output_dir = "/output"
-    output_tarball = os.path.join(output_dir, f"codecs-manylinux_{machine}.tar.gz")
-elif system == "Darwin":
-    # cibuildwheel sets ARCHFLAGS:
-    # https://github.com/pypa/cibuildwheel/blob/5255155bc57eb6224354356df648dc42e31a0028/cibuildwheel/macos.py#L207-L220
-    machine = os.environ["ARCHFLAGS"].split()[1]
-    output_dir = os.path.abspath("output")
-    output_tarball = os.path.join(output_dir, f"codecs-macos_{machine}.tar.gz")
-else:
-    raise Exception("Unsupported system: %s" % system)
+output_tarball = os.path.join(output_dir, f"codecs-{get_platform()}.tar.gz")
 
 for d in [build_dir, output_dir, source_dir]:
     if not os.path.exists(d):
