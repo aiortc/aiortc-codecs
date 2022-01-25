@@ -1,6 +1,5 @@
 set destdir=%1
 
-set outputfile=output\codecs-win%PYTHON_ARCH%.tar.gz
 if "%PYTHON_ARCH%" == "64" (
     set platform=win_amd64
     set triplet=x64-windows-static

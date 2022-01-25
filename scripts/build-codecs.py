@@ -30,20 +30,22 @@ def build(package, configure_args=[]):
 
 def get_platform():
     system = platform.system()
+    machine = platform.machine()
     if system == "Linux":
-        return "manylinux_%s" % platform.machine()
+        return f"manylinux_{machine}"
     elif system == "Darwin":
         # cibuildwheel sets ARCHFLAGS:
         # https://github.com/pypa/cibuildwheel/blob/5255155bc57eb6224354356df648dc42e31a0028/cibuildwheel/macos.py#L207-L220
-        machine = os.environ["ARCHFLAGS"].split()[1]
-        return "macosx_%s" % machine
+        if "ARCHFLAGS" in os.environ:
+            machine = os.environ["ARCHFLAGS"].split()[1]
+        return f"macosx_{machine}"
     elif system == "Windows":
         if struct.calcsize("P") * 8 == 64:
             return "win_amd64"
         else:
             return "win32"
     else:
-        raise Exception("Unsupported platfom %s" % sys.platform)
+        raise Exception(f"Unsupported system {system}")
 
 
 def prepend_env(name, new, separator=" "):
@@ -73,7 +75,7 @@ def extract(package, url, *, strip_components=1):
 
 
 def run(cmd):
-    sys.stdout.write(f"- Running: {cmd}")
+    sys.stdout.write(f"- Running: {cmd}\n")
     subprocess.run(cmd, check=True, stderr=sys.stderr.buffer, stdout=sys.stdout.buffer)
 
 
@@ -107,11 +109,22 @@ if not os.path.exists(output_tarball):
     #### CODECS ###
 
     # build opus
-    extract("opus", "https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz", )
+    extract(
+        "opus",
+        "https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz",
+    )
     build("opus", ["--disable-shared", "--enable-static", "--with-pic"])
 
     # build vpx
     extract("vpx", "https://github.com/webmproject/libvpx/archive/v1.10.0.tar.gz")
-    build("vpx", ["--disable-examples", "--disable-tools", "--disable-unit-tests", "--enable-pic"])
+    build(
+        "vpx",
+        [
+            "--disable-examples",
+            "--disable-tools",
+            "--disable-unit-tests",
+            "--enable-pic",
+        ],
+    )
 
     run(["tar", "czvf", output_tarball, "-C", dest_dir, "include", "lib"])
