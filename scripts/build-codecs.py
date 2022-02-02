@@ -91,12 +91,18 @@ for d in [build_dir, output_dir, source_dir]:
 if not os.path.exists(output_tarball):
     os.chdir(build_dir)
 
-    prepend_env("CPPFLAGS", "-I" + os.path.join(dest_dir, "include"))
-    prepend_env("LDFLAGS", "-L" + os.path.join(dest_dir, "lib"))
     prepend_env("PATH", os.path.join(dest_dir, "bin"), separator=":")
-    prepend_env(
-        "PKG_CONFIG_PATH", os.path.join(dest_dir, "lib", "pkgconfig"), separator=":"
-    )
+    if platform.system() == "Darwin" and os.environ.get("ARCHFLAGS") == "-arch arm64":
+        opus_configure_args = [
+            "--build",
+            "x86_64-apple-darwin20.6.0",
+            "--host",
+            "amd64-apple-darwin20.6.0",
+        ]
+        vpx_configure_args = ["--target=arm64-darwin20-gcc"]
+    else:
+        opus_configure_args = []
+        vpx_configure_args = []
 
     #### BUILD TOOLS ####
 
@@ -121,7 +127,8 @@ if not os.path.exists(output_tarball):
             "--disable-shared",
             "--enable-static",
             "--with-pic",
-        ],
+        ]
+        + opus_configure_args,
     )
 
     # build vpx
@@ -133,7 +140,8 @@ if not os.path.exists(output_tarball):
             "--disable-tools",
             "--disable-unit-tests",
             "--enable-pic",
-        ],
+        ]
+        + vpx_configure_args,
     )
 
     run(["tar", "czvf", output_tarball, "-C", dest_dir, "include", "lib"])
