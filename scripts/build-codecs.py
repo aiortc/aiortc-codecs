@@ -116,7 +116,7 @@ if not os.path.exists(output_tarball):
     build("opus", ["--disable-shared", "--enable-static", "--with-pic"])
 
     # build vpx
-    extract("vpx", "https://github.com/webmproject/libvpx/archive/v1.10.0.tar.gz")
+    extract("vpx", "https://github.com/webmproject/libvpx/archive/v1.11.0.tar.gz")
     build(
         "vpx",
         [
