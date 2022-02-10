@@ -76,7 +76,8 @@ def extract(package, url, *, strip_components=1):
 
 def run(cmd):
     sys.stdout.write(f"- Running: {cmd}\n")
-    subprocess.run(cmd, check=True, stderr=sys.stderr.buffer, stdout=sys.stdout.buffer)
+    sys.stdout.flush()
+    subprocess.run(cmd, check=True)
 
 
 output_dir = os.path.abspath("output")
