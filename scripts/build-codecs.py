@@ -23,7 +23,7 @@ def build(package, configure_args=[]):
     path = os.path.join(build_dir, package)
     os.chdir(path)
     run(["./configure"] + configure_args + ["--prefix=" + dest_dir])
-    run(["make", "-j"])
+    run(["make"])
     run(["make", "install"])
     os.chdir(build_dir)
 
