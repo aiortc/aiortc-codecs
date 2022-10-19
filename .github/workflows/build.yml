@@ -24,13 +24,13 @@ jobs:
           - os: windows-latest
             arch: x86
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install qemu (linux)
         if: matrix.os == 'ubuntu-latest'
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Build codecs
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
@@ -45,7 +45,7 @@ jobs:
           rm -f output/*.whl
         shell: bash
       - name: Upload codecs
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: output
           path: output/
