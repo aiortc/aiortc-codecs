@@ -11,18 +11,25 @@ jobs:
         include:
           - os: macos-latest
             arch: arm64
+            shell: bash
           - os: macos-latest
             arch: x86_64
+            shell: bash
           - os: ubuntu-latest
             arch: aarch64
+            shell: bash
           - os: ubuntu-latest
             arch: i686
+            shell: bash
           - os: ubuntu-latest
             arch: x86_64
+            shell: bash
           - os: windows-latest
             arch: AMD64
-          - os: windows-latest
-            arch: x86
+            shell: 'msys2 {0}'
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -31,11 +38,17 @@ jobs:
       - name: Install qemu (linux)
         if: matrix.os == 'ubuntu-latest'
         uses: docker/setup-qemu-action@v2
+      - name: Install msys2 (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          install: base-devel mingw-w64-x86_64-gcc mingw-w64-x86_64-nasm
+          path-type: inherit
       - name: Build codecs
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BEFORE_BUILD: python scripts/build-codecs.py /tmp/vendor
-          CIBW_BEFORE_BUILD_WINDOWS: scripts\build-codecs.bat C:\cibw\vendor
+          CIBW_BEFORE_BUILD_WINDOWS: python scripts\build-codecs.py C:\cibw\vendor
           CIBW_BUILD: cp38-*
           CIBW_SKIP: "*musllinux*"
           CIBW_TEST_COMMAND: python -c "import dummy"
@@ -43,7 +56,6 @@ jobs:
           pip install cibuildwheel
           cibuildwheel --output-dir output
           rm -f output/*.whl
-        shell: bash
       - name: Upload codecs
         uses: actions/upload-artifact@v3
         with:

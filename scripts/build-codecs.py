@@ -19,10 +19,36 @@ for d in [build_dir, dest_dir]:
         shutil.rmtree(d)
 
 
+def fetch(url, path):
+    run(["curl", "-L", "-o", path, url])
+
+
+def mangle_path(path):
+    if platform.system() == "Windows":
+        return path.replace(os.path.sep, "/").replace("C:", "/c").replace("D:", "/d")
+    else:
+        return path
+
+
 def build(package, configure_args=[]):
-    path = os.path.join(build_dir, package)
-    os.chdir(path)
-    run(["./configure"] + configure_args + ["--prefix=" + dest_dir])
+    package_path = os.path.join(build_dir, package)
+
+    # update config.guess and config.sub
+    config_files = ("config.guess", "config.sub")
+    for root, dirs, files in os.walk(package_path):
+        for name in filter(lambda x: x in config_files, files):
+            script_path = os.path.join(root, name)
+            cache_path = os.path.join(source_dir, name)
+            if not os.path.exists(cache_path):
+                fetch(
+                    "https://git.savannah.gnu.org/cgit/config.git/plain/" + name,
+                    cache_path,
+                )
+            shutil.copy(cache_path, script_path)
+            os.chmod(script_path, 0o755)
+
+    os.chdir(package_path)
+    run(["sh", "./configure"] + configure_args + ["--prefix=" + mangle_path(dest_dir)])
     run(["make"])
     run(["make", "install"])
     os.chdir(build_dir)
@@ -63,7 +89,7 @@ def extract(package, url, *, strip_components=1):
 
     # download tarball
     if not os.path.exists(tarball):
-        run(["curl", "-L", "-o", tarball, url])
+        fetch(url, tarball)
 
     # extract tarball
     os.mkdir(path)
@@ -81,7 +107,7 @@ def run(cmd):
 
 
 output_dir = os.path.abspath("output")
-if platform.system() == "Linux":
+if platform.system() == "Linux" and os.environ.get("CIBUILDWHEEL") == "1":
     output_dir = "/output"
 output_tarball = os.path.join(output_dir, f"codecs-{get_platform()}.tar.gz")
 
@@ -100,6 +126,9 @@ if not os.path.exists(output_tarball):
             "amd64-apple-darwin20.6.0",
         ]
         vpx_configure_args = ["--target=arm64-darwin20-gcc"]
+    elif platform.system() == "Windows":
+        opus_configure_args = []
+        vpx_configure_args = ["--target=x86_64-win64-gcc"]
     else:
         opus_configure_args = []
         vpx_configure_args = []
@@ -107,11 +136,12 @@ if not os.path.exists(output_tarball):
     #### BUILD TOOLS ####
 
     # install nasm
-    extract(
-        "nasm",
-        "https://www.nasm.us/pub/nasm/releasebuilds/2.14.02/nasm-2.14.02.tar.bz2",
-    )
-    build("nasm")
+    if platform.system() != "Windows":
+        extract(
+            "nasm",
+            "https://www.nasm.us/pub/nasm/releasebuilds/2.14.02/nasm-2.14.02.tar.bz2",
+        )
+        build("nasm")
 
     #### CODECS ###
 
