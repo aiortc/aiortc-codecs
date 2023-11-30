@@ -118,7 +118,7 @@ if not os.path.exists(output_tarball):
     # build opus
     extract(
         "opus",
-        "https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz",
+        "https://github.com/xiph/opus/releases/download/v1.4/opus-1.4.tar.gz",
     )
     build(
         "opus",
