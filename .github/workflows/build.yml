@@ -24,13 +24,13 @@ jobs:
           - os: windows-latest
             arch: x86
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install qemu (linux)
         if: matrix.os == 'ubuntu-latest'
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Build codecs
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
